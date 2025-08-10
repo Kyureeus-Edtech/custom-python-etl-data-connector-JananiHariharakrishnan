@@ -15,7 +15,9 @@ Base URL: https://api.rawg.io/api/platforms
 You must supply your API key using the parameter `key=YOUR_API_KEY`.  
 
 Example endpoint:  
-https://api.rawg.io/api/platforms?key=YOUR_API_KEY&page=1&page_size=20  
+```
+https://api.rawg.io/api/platforms?key=YOUR_API_KEY&page=1&page_size=20
+```
 ---
 **Common parameters**:  
 - page: for pagination  
@@ -127,13 +129,17 @@ The script includes several checks to ensure quality:
 ```
 ---
 **Project Structure**  
-etl_connector.py – The ETL script  
-.env – Environment variables such as API key and Mongo URI (not committed to git)  
-requirements.txt – Required Python dependencies  
-README.md – Project documentation
-.gitignore - To hide secret details with respect to API and MONGODB connection  
+```
+project-folder/
+├── etl_connector.py        # The ETL Python script
+├── .env                   # Secrets: API key, Mongo URI (not committed to git)
+├── requirements.txt       # Python dependency list
+├── README.md              # Project documentation
+├── .gitignore             # Ensures .env and other sensitive files are not committed
+```
 ---
 **Summary**  
 This pipeline securely connects to the RAWG API, extracts platform data, transforms it to keep only the most useful parts, and loads it into MongoDB. It has built‑in validation and error handling and is clearly written so it can be easily understood and maintained.  
+
 
 
