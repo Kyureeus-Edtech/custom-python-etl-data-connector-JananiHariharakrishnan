@@ -1,6 +1,6 @@
 
-##RAWG Platforms ETL Pipeline (Python to MongoDB)  
-
+## RAWG Platforms ETL Pipeline (Python to MongoDB) 
+---
 **Project Overview**  
 This project implements an ETL (Extract – Transform – Load) process that takes video game platform data from the RAWG.io API, processes it to keep only essential details, and stores it in a MongoDB collection.  
 
@@ -9,14 +9,14 @@ The script does the following:
 - Transforms the data to select only relevant fields for analysis  
 - Loads the cleaned data into MongoDB using upsert so it can be updated without duplicates  
 - Adds an ingestion timestamp to each record for auditing  
-
+---
 **API Endpoint Details**  
 Base URL: https://api.rawg.io/api/platforms  
 You must supply your API key using the parameter `key=YOUR_API_KEY`.  
 
 Example endpoint:  
 https://api.rawg.io/api/platforms?key=YOUR_API_KEY&page=1&page_size=20  
-
+---
 **Common parameters**:  
 - page: for pagination  
 - page_size: number of records returned per page (default is 20)  
@@ -28,7 +28,7 @@ In this ETL we keep:
 - **year_start, year_end** – capture the lifespan of the platform, useful for historical analysis  
 - **games list (id, slug, name, added)** – top associated games in a compact format (only key metadata kept for speed and clarity)  
 - **ingestion_timestamp** – added by the script to record when the data was fetched, supports auditing and freshness checks  
-
+---
 **Setup Instructions** 
 1. Clone the repository and open the project folder.  
 
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 ```
 python etl_connector.py
 ```
-
+---
 **Testing and Validation**  
 The script includes several checks to ensure quality:  
 - Uses `raise_for_status()` to stop on HTTP errors such as 400, 401, 429 or 500  
@@ -60,15 +60,15 @@ The script includes several checks to ensure quality:
 - Uses upsert in MongoDB to either insert new data or update existing records without duplicates  
 - Captures and logs network or database errors  
 - Adds ingestion_timestamp to every record for traceability  
-
+---
 **Why the Code is Self‑Documenting**  
 - Clear, descriptive function names such as fetch_platforms, transform_platforms, load_to_mongodb  
 - Code is divided into well‑marked sections for Extract, Transform, Load  
 - Each function has a docstring explaining its purpose, inputs and outputs  
 - Variable names are explicit instead of abbreviated  
 - Progress messages are printed at every important stage of execution  
-
-Example Output Document (from MongoDB)  
+---
+**Example Output Document (from MongoDB)**  
 ```
 {
   "_id": {
@@ -125,14 +125,15 @@ Example Output Document (from MongoDB)
 }
 
 ```
-
+---
 **Project Structure**  
 etl_connector.py – The ETL script  
 .env – Environment variables such as API key and Mongo URI (not committed to git)  
 requirements.txt – Required Python dependencies  
 README.md – Project documentation
 .gitignore - To hide secret details with respect to API and MONGODB connection  
-
-Summary  
+---
+**Summary**  
 This pipeline securely connects to the RAWG API, extracts platform data, transforms it to keep only the most useful parts, and loads it into MongoDB. It has built‑in validation and error handling and is clearly written so it can be easily understood and maintained.  
+
 
