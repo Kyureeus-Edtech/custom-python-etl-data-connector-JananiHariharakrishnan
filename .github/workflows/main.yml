@@ -23,6 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Debug environment variables presence
+      run: |
+        [ -z "$MONGO_URI" ] && echo "MONGO_URI is NOT set" || echo "MONGO_URI is set"
+        [ -z "$RAWG_API_KEY" ] && echo "RAWG_API_KEY is NOT set" || echo "RAWG_API_KEY is set"
+
     - name: Run ETL script
       env:
         RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
