@@ -9,12 +9,16 @@ import datetime
 # =======================================================
 load_dotenv()
 
-RAWG_API_KEY = os.getenv("RAWG_API_KEY")       # API key for RAWG
-MONGO_URI = os.getenv("MONGO_URI")             # MongoDB connection string
-DB_NAME = os.getenv("DB_NAME", "SSN_ETL_assignment")        # Database name configurable via .env
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "rawg_platforms_raw")  # Better collection name
+OTX_API_KEY = os.getenv("OTX_API_KEY", "").strip()
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("DB_NAME", "SSN_ETL_assignment")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "otx_pulses_raw")
 
-BASE_URL = "https://api.rawg.io/api/platforms"  # RAWG API endpoint for platforms
+# New optional params from .env
+LIMIT = int(os.getenv("LIMIT", 10))  # default 10 results per page
+MODIFIED_SINCE = os.getenv("MODIFIED_SINCE")  # ISO 8601 datetime string or None
+
+BASE_URL = "https://otx.alienvault.com/api/v1/pulses/subscribed"
 
 # =======================================================
 # 2. Connect to MongoDB
@@ -26,65 +30,68 @@ collection = database[COLLECTION_NAME]
 # =======================================================
 # 3. Extract Function
 # =======================================================
-def fetch_platforms(page_number=1, page_size=20):
-    
-    params = {
-        "key": RAWG_API_KEY,
-        "page": page_number,
-        "page_size": page_size
+def fetch_pulses(page_number=1, limit=LIMIT, modified_since=MODIFIED_SINCE):
+    headers = {
+        "X-OTX-API-KEY": OTX_API_KEY
     }
     
+    params = {
+        "limit": limit,
+        "page": page_number
+    }
+    
+    if modified_since:
+        params["modified_since"] = modified_since
+    
     try:
-        response = requests.get(BASE_URL, params=params)
-        response.raise_for_status()  # Raises HTTPError for bad responses
+        response = requests.get(BASE_URL, headers=headers, params=params)
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 429:
-            print("Rate limit reached. Please try again later.")
-        else:
-            print(f"HTTP error occurred: {http_err}")
-        raise
+        print(f"HTTP error occurred: {http_err}")
+        print(f"Response content: {response.text}")
+        return None
     except requests.exceptions.RequestException as req_err:
         print(f"Network or connection error: {req_err}")
-        raise
+        return None
 
 # =======================================================
 # 4. Transform Function
 # =======================================================
-def transform_platforms(api_response):
-
-    transformed_platforms = []
+def transform_pulses(api_response):
+    transformed_pulses = []
     
-    for platform in api_response.get("results", []):
-        platform_record = {
-            "id": platform.get("id"),
-            "name": platform.get("name"),
-            "slug": platform.get("slug"),
-            "games_count": platform.get("games_count"),
-            "image_background": platform.get("image_background"),
-            "year_start": platform.get("year_start"),
-            "year_end": platform.get("year_end"),
-            "ingestion_timestamp": datetime.datetime.utcnow(),
-            "games": [
+    for pulse in api_response.get("results", []):
+        pulse_record = {
+            "id": pulse.get("id"),
+            "name": pulse.get("name"),
+            "author_name": pulse.get("author_name"),
+            "description": pulse.get("description"),
+            "created": pulse.get("created"),
+            "modified": pulse.get("modified"),
+            "tags": pulse.get("tags", []),
+            "references": pulse.get("references", []),
+            "targeted_countries": pulse.get("targeted_countries", []),
+            "indicators": [
                 {
-                    "id": game.get("id"),
-                    "slug": game.get("slug"),
-                    "name": game.get("name"),
-                    "added": game.get("added")
+                    "indicator": i.get("indicator"),
+                    "type": i.get("type"),
+                    "title": i.get("title"),
+                    "description": i.get("description")
                 }
-                for game in platform.get("games", [])
-            ]
+                for i in pulse.get("indicators", [])
+            ],
+            "ingestion_timestamp": datetime.datetime.utcnow()
         }
-        transformed_platforms.append(platform_record)
+        transformed_pulses.append(pulse_record)
     
-    return transformed_platforms
+    return transformed_pulses
 
 # =======================================================
 # 5. Load Function
 # =======================================================
-def load_to_mongodb(platform_records):
-
-    for record in platform_records:
+def load_to_mongodb(pulse_records):
+    for record in pulse_records:
         try:
             collection.update_one(
                 {"id": record["id"]},
@@ -92,29 +99,29 @@ def load_to_mongodb(platform_records):
                 upsert=True
             )
         except Exception as e:
-            print(f"Error inserting/updating platform ID {record['id']}: {e}")
+            print(f"Error inserting/updating pulse ID {record['id']}: {e}")
 
 # =======================================================
 # 6. Main ETL Process
 # =======================================================
 def main():
-
     page_number = 1
+    success = True
     
     while True:
-        print(f"Fetching page {page_number} from RAWG API...")
+        print(f"Fetching page {page_number} from OTX Pulses API...")
         
-        try:
-            api_response = fetch_platforms(page_number=page_number)
-        except Exception:
+        api_response = fetch_pulses(page_number=page_number)
+        if not api_response:
             print("Stopping ETL due to error during extraction.")
+            success = False
             break
         
         if not api_response.get("results"):
             print("No more data found. Ending ETL process.")
             break
         
-        transformed_records = transform_platforms(api_response)
+        transformed_records = transform_pulses(api_response)
         
         if transformed_records:
             load_to_mongodb(transformed_records)
@@ -126,7 +133,10 @@ def main():
         else:
             break
     
-    print("ETL process completed successfully!")
+    if success:
+        print("ETL process completed successfully!")
+    else:
+        print("ETL process ended with errors.")
 
 # =======================================================
 # Script Entry Point
