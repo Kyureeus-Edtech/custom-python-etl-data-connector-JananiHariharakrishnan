@@ -6,7 +6,7 @@ This project implements an ETL (Extract – Transform – Load) process that tak
 
 The script does the following:  
 - Extracts platform data from the RAWG API using API key authentication and pagination
-- - How
+  - How
 - Transforms the data to select only relevant fields for analysis  
 - Loads the cleaned data into MongoDB using upsert so it can be updated without duplicates  
 - Adds an ingestion timestamp to each record for auditing  
@@ -141,6 +141,7 @@ project-folder/
 ---
 **Summary**  
 This pipeline securely connects to the RAWG API, extracts platform data, transforms it to keep only the most useful parts, and loads it into MongoDB. It has built‑in validation and error handling and is clearly written so it can be easily understood and maintained.  
+
 
 
 
