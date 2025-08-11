@@ -258,7 +258,7 @@ project-folder/
 ├── etl_connector.py        # The ETL Python script
 ├── .env                   # Secrets: API key, Mongo URI (not committed to git)
 ├── requirements.txt       # Python dependency list
-├── README.md              # Project documentation
+├── README.md              # Project documentation including APIs
 ├── .gitignore             # Ensures .env and other sensitive files are not committed
 ```
 ---
