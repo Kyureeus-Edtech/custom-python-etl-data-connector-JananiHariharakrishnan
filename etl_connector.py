@@ -11,11 +11,11 @@ load_dotenv()
 
 OTX_API_KEY = os.getenv("OTX_API_KEY", "").strip()
 MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = os.getenv("DB_NAME", "SSN_ETL_assignment")
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "otx_pulses_raw")
+DB_NAME = os.getenv("DB_NAME")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 
 # New optional params from .env
-LIMIT = int(os.getenv("LIMIT", 10))  # default 10 results per page
+LIMIT = int(os.getenv("LIMIT"))  # default 10 results per page
 MODIFIED_SINCE = os.getenv("MODIFIED_SINCE")  # ISO 8601 datetime string or None
 
 BASE_URL = "https://otx.alienvault.com/api/v1/pulses/subscribed"
