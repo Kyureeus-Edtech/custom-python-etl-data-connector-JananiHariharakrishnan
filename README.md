@@ -54,10 +54,10 @@ In this ETL we keep:
 2. Create a `.env` file with the following content:  
 ```
 OTX_API_KEY=your_otx_api_key_here
-MONGO_URI=mongodb://localhost:27017/
-DB_NAME=SSN_ETL_assignment
-COLLECTION_NAME=otx_pulses_raw
-LIMIT=10
+MONGO_URI=your_mongo_connection_uri_here
+DB_NAME=your_database_name_here
+COLLECTION_NAME=your_collection_name_here
+LIMIT=100
 MODIFIED_SINCE=
 ```
 
